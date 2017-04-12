@@ -1,0 +1,9 @@
+canvas.dotted {
+		    border: 1px solid black;
+		}
+		canvas.dotted:active {
+		    cursor:default;
+		}
+		.buttonSet{
+
+		}
