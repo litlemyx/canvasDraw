@@ -1,3 +1,39 @@
+function randomInteger(min, max) {
+    var rand = min - 0.5 + Math.random() * (max - min + 1)
+    rand = Math.round(rand);
+    return rand;
+} 
+
+function throttle(func, ms=1) {
+
+  var isThrottled = false,
+    savedArgs,
+    savedThis;
+
+  wrapper = function() {
+
+    if (isThrottled) { // (2)
+      savedArgs = arguments;
+      savedThis = this;
+      return;
+    }
+
+    func.apply(this, arguments); // (1)
+
+    isThrottled = true;
+
+    setTimeout(function() {
+      isThrottled = false; // (3)
+      if (savedArgs) {
+        wrapper.apply(savedThis, savedArgs);
+        savedArgs = savedThis = null;
+      }
+    }, ms);
+  }.bind(this);
+
+  return wrapper;
+}
+
 function tetris(){
 
 	this.grid = new Grid();
@@ -21,14 +57,31 @@ function tetris(){
 
 	this.activeBlock = {};
 
+	// {
+	// 	position: {x: 1, y: 1},
+	// 	color: [251,124,32, 0.4],
+	// 	type: "line",
+	// 	rotation: 0
+	// }
 
-
-	// Reset the game when the player catches a monster
 	this.reset = function () {
 		this.grid.clear();
-		this.map = Array(16).fill(Array(16).fill(0.5));
+		this.map = Array(16).fill(Array(16).fill(0));
 		this.mapRedraw = true;
+		this.needNew = true;
 	};
+
+	this.generateBlock = function(){
+		this.activeBlock = 
+		{
+			position: {x: 7, y: 0},
+			color: [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1],
+			type: this.blocksType[0],
+			rotation: 0
+		}
+	}
+
+
 
 	// Update game objects
 	this.update = function (modifier) {
@@ -70,13 +123,22 @@ function tetris(){
 
 	// Draw everything
 	this.render = function () {
-		this.grid.remap(this.map);
+		if(this.mapRedraw){
+			this.grid.remap(this.map);
+			this.mapRedraw = false;
+		}
+		this.grid.putFigure(this.activeBlock);
 	};
 
 	// The main game loop
 	this.main = function (then) {
 		var now = Date.now();
 		var delta = now - then;
+
+		if(this.needNew){
+			this.generateBlock();
+			this.needNew=false;
+		}
 
 		this.update(delta / 1000);
 		this.render();
@@ -86,9 +148,16 @@ function tetris(){
 		// Request to do this again ASAP
 		var t = 100/6;
 		//setTimeout(main, t-delta);
-		requestAnimationFrame(function(){
-			this.main(then);
-		}.bind(this));
+
+		var fps = 1;
+		
+		setTimeout(function() {
+			requestAnimationFrame(function(){
+				this.main(then);
+			}.bind(this));
+		}.bind(this), 1000 / fps);
+		
+		
 	};
 
 	// Cross-browser support for requestAnimationFrame

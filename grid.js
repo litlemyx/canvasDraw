@@ -140,9 +140,25 @@ function Grid(position = {x:0, y:0}, cn ){
   
 
   this._putPixel = function(params){
-    var {x , y , color} = params; 
-    this.field[x][y] = color;
-    
+    const {x , y , color} = params; 
+    this.field[y][x] = color;
+  };
+
+  this.putFigure = function(fig){
+    const {position: {x, y}} =  fig;
+
+
+    let i = 0, j = 0;
+    let p, pp;
+    for(p of fig.type.map){
+      j=0;
+      for(pp of p){
+        this._putPixel({x: x+j, y: y+i, color: fig.color});
+        j++;
+      }
+      i++;
+    }
+    this.fireEvent("redraw");
   };
 
   this.fireEvent = function(event){
