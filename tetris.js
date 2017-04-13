@@ -75,8 +75,8 @@ function tetris(){
 	this.generateBlock = function(){
 		this.activeBlock = 
 		{
-			position: {x: 7, y: -1},
-			exposition: {x: 7, y: -1},
+			position: {x: 7, y: 0},
+			exposition: {x: 7, y: 0},
 			color: [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1],
 			type: this.blocksType[0],
 			rotation: 0
@@ -88,8 +88,9 @@ function tetris(){
 	// Update game objects
 	this.update = function (modifier) {
 		console.log("update tick");
-		this.activeBlock.color = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1];
-		this.activeBlock.exposition = this.activeBlock.position;
+		//this.activeBlock.color = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1];
+		let {x, y} = this.activeBlock.position;
+		this.activeBlock.exposition = {x, y};
 		this.activeBlock.position.y++;
 			
 		// hero.running = false;
@@ -130,16 +131,18 @@ function tetris(){
 
 	// Draw everything
 	this.render = function () {
+		this.grid.fireEvent("renderFinish");
+
 		if(this.mapRedraw){
 			this.grid.remap(this.map);
 			this.mapRedraw = false;
 		}
 
-		this.grid.clearFigure(this.activeBlock.exposition);
+		this.grid.clearFigure(this.activeBlock.exposition, this.activeBlock.type);
 
 		this.grid.putFigure(this.activeBlock);
 
-		this.grid.fireEvent("renderFinish");
+		
 	};
 
 	// The main game loop
@@ -148,6 +151,13 @@ function tetris(){
 			var update = throttle(self.update.bind(self), 3000);
 
 			return function (then) {
+
+				setTimeout(function() {
+					requestAnimationFrame(function(){
+						this.main(then);
+					}.bind(this));
+				}.bind(this), 1000 / fps);
+
 				console.log("render tick");
 				var now = Date.now();
 				var delta = now - then;
@@ -169,11 +179,7 @@ function tetris(){
 
 				var fps = 60;
 				
-				setTimeout(function() {
-					requestAnimationFrame(function(){
-						this.main(then);
-					}.bind(this));
-				}.bind(this), 1000 / fps);
+				
 			}
 		
 	})(this);

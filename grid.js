@@ -163,20 +163,40 @@ function Grid(position = {x:0, y:0}, cn ){
     }
   };
 
-  this.clearFigure = function(position){
+  this.clearFigure = function(position, figureType){
     const {x, y} =  position;
 
     let i = 0, j = 0;
     let p, pp;
-    for(p of fig.type.map){
+    for(p of figureType.map){
       j=0;
       for(pp of p){
-        this._putPixel({x: x+j, y: y+i, color: 0});
+        this._putPixel({x: x+j, y: y+i, color: [0,0,0,0]});
         j++;
       }
       i++;
     }
-  }
+  };
+
+  //Not finished
+  this.clearRect = function(posStart, posEnd){
+    // const {x, y} =  pos;
+
+    // var fig = figureType;
+
+    // let i = 0, j = 0;
+    // let p, pp;
+    // for(p of fig.map){
+    //   j=0;
+    //   for(pp of p){
+    //     this._putPixel({x: x+j, y: y+i, color: 0});
+    //     j++;
+    //   }
+    //   i++;
+    // }
+  };
+
+
 
   this.fireEvent = function(event){
     for(e of this._events[event]){
