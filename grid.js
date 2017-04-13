@@ -101,7 +101,8 @@ function Grid(position = {x:0, y:0}, cn ){
     );
 
     this._events = {
-      "redraw": [this._draw]
+      "redraw": [this._draw],
+      "renderFinish": [this.finish]
     };
   }
 
@@ -123,6 +124,10 @@ function Grid(position = {x:0, y:0}, cn ){
     this._events[event] ? this._events[event].push(handler) : this._events[event] = [handler];
   };
 
+  this.finish = function(){
+    this.fireEvent("redraw");
+  };
+
   this.remap = function(map){
     let p,pp;
     let i = 0,j = 0;
@@ -135,9 +140,8 @@ function Grid(position = {x:0, y:0}, cn ){
       }
       i++;
     }
-    this.fireEvent("redraw");
-  }
-  
+    
+  };
 
   this._putPixel = function(params){
     const {x , y , color} = params; 
@@ -146,7 +150,6 @@ function Grid(position = {x:0, y:0}, cn ){
 
   this.putFigure = function(fig){
     const {position: {x, y}} =  fig;
-
 
     let i = 0, j = 0;
     let p, pp;
@@ -158,8 +161,22 @@ function Grid(position = {x:0, y:0}, cn ){
       }
       i++;
     }
-    this.fireEvent("redraw");
   };
+
+  this.clearFigure = function(position){
+    const {x, y} =  position;
+
+    let i = 0, j = 0;
+    let p, pp;
+    for(p of fig.type.map){
+      j=0;
+      for(pp of p){
+        this._putPixel({x: x+j, y: y+i, color: 0});
+        j++;
+      }
+      i++;
+    }
+  }
 
   this.fireEvent = function(event){
     for(e of this._events[event]){
