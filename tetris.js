@@ -34,9 +34,27 @@ function throttle(func, ms=1) {
   return wrapper;
 }
 
-function tetris(){
+function debounce(f, ms) {
 
-	this.grid = new Grid();
+  var state = null;
+
+  var COOLDOWN = 1;
+
+  return function() {
+    if (state) return;
+
+    f.apply(this, arguments);
+
+    state = COOLDOWN;
+
+    setTimeout(function() { state = null }, ms);
+  }.bind(this);
+
+}
+
+function tetris(h, w, c, r){
+	var height = h,  width = w, cols = c, rows = r;
+	this.grid = new Grid(h, w, c, r);
 
 	var keysDown = {};
 
@@ -45,7 +63,7 @@ function tetris(){
 	}, false);
 
 	addEventListener("keyup", function (e) {
-		delete keysDown[e.keyCode];
+		//delete keysDown[e.keyCode];
 	}, false);
 
 	this.blocksType = [
@@ -66,17 +84,18 @@ function tetris(){
 
 	this.reset = function () {
 		this.grid.clear();
-		this.map = Array(16).fill(Array(16).fill(0));
+		this.map = Array(cols).fill(Array(rows).fill(0));
 		this.mapRedraw = true;
 		this.needNew = true;
 		this.speed = 3000;
+		this.isPause = false;
 	};
 
 	this.generateBlock = function(){
 		this.activeBlock = 
 		{
-			position: {x: 7, y: 0},
-			exposition: {x: 7, y: 0},
+			position: {x: 0, y: 0},
+			exposition: {x: 0, y: 0},
 			color: [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1],
 			type: this.blocksType[0],
 			rotation: 0
@@ -89,29 +108,30 @@ function tetris(){
 	this.update = function (modifier) {
 		console.log("update tick");
 		//this.activeBlock.color = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1];
-		let {x, y} = this.activeBlock.position;
-		this.activeBlock.exposition = {x, y};
-		this.activeBlock.position.y++;
+		if(this.needNew){
+					this.generateBlock();
+					this.needNew=false;
+		}
+		else{
+			let {x, y} = this.activeBlock.position;
+			this.activeBlock.exposition = {x, y};
+			this.activeBlock.position.y++;
+		}
+
+		if (37 in keysDown) { // Player holding left
+			this.activeBlock.position.x && this.activeBlock.position.x-- ;
+			delete keysDown[37];
+		}
+		if (39 in keysDown) { // Player holding right
+			(this.activeBlock.position.x < cols) && this.activeBlock.position.x++;	
+			delete keysDown[39];
+		}
+		
 			
 		// hero.running = false;
 		// hero.jumping = false;
 
-		// if (38 in keysDown) { // Player holding up
-		// 	hero.y -= hero.speed * modifier;
-		// 	hero.running = true;
-		// }
-		// if (40 in keysDown) { // Player holding down
-		// 	hero.y += hero.speed * modifier;
-		// 	hero.running = true;
-		// }
-		// if (37 in keysDown) { // Player holding left
-		// 	hero.x -= hero.speed * modifier;
-		// 	hero.running = true;
-		// }
-		// if (39 in keysDown) { // Player holding right
-		// 	hero.x += hero.speed * modifier;
-		// 	hero.running = true;
-		// }
+		
 
 		// if (32 in keysDown) { // Player holding right
 		// 	hero.jumping = true;
@@ -131,8 +151,7 @@ function tetris(){
 
 	// Draw everything
 	this.render = function () {
-		this.grid.fireEvent("renderFinish");
-
+		
 		if(this.mapRedraw){
 			this.grid.remap(this.map);
 			this.mapRedraw = false;
@@ -142,33 +161,66 @@ function tetris(){
 
 		this.grid.putFigure(this.activeBlock);
 
+		this.grid.fireEvent("renderFinish");
+
+		
+	};
+
+	this.keysHandler = function(){
+		if (80 in keysDown) { // Player holding up
+			this.isPause = !this.isPause;
+			delete keysDown[80];
+		}
+		if (38 in keysDown) { // Player holding up
+			
+		}
+		if (40 in keysDown) { // Player holding down
+			
+		}
+
+		if (37 in keysDown) { // Player holding left
+			if(this.activeBlock.position.x){
+				let {x, y} = this.activeBlock.position;
+				this.activeBlock.exposition = {x, y};
+				this.activeBlock.position.x--; 
+			}
+			delete keysDown[37];
+		}
+		if (39 in keysDown) { // Player holding right
+			if(this.activeBlock.position.x < 12){
+				let {x, y} = this.activeBlock.position;
+				this.activeBlock.exposition = {x, y};
+				this.activeBlock.position.x++; 
+			}
+			delete keysDown[39];
+		}
 		
 	};
 
 	// The main game loop
 	this.main = (function(self){
 
-			var update = throttle(self.update.bind(self), 3000);
+			var update = debounce(self.update.bind(self), 3000);
 
 			return function (then) {
+				var fps = 60;
 
 				setTimeout(function() {
 					requestAnimationFrame(function(){
 						this.main(then);
 					}.bind(this));
+
 				}.bind(this), 1000 / fps);
 
-				console.log("render tick");
+				console.log("main tick");
 				var now = Date.now();
 				var delta = now - then;
 
-				if(this.needNew){
-					this.generateBlock();
-					this.needNew=false;
-				}
+				this.keysHandler();
 
-
-				update(delta / 1000);
+				if(!this.isPause){
+						update(delta / 1000);
+					}
 				this.render();
 
 				then = now;
@@ -176,10 +228,6 @@ function tetris(){
 				// Request to do this again ASAP
 				var t = 100/6;
 				//setTimeout(main, t-delta);
-
-				var fps = 60;
-				
-				
 			}
 		
 	})(this);

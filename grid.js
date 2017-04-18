@@ -34,7 +34,7 @@ function randomInteger(min, max) {
     return rand;
 } 
 
-function Grid(position = {x:0, y:0}, cn ){
+function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x:0, y:0} ){
   var canvas;
   switch(typeof cn){
     case "object":
@@ -50,8 +50,8 @@ function Grid(position = {x:0, y:0}, cn ){
       break;
     default:
       canvas = document.createElement("canvas");
-      canvas.height = 256;
-      canvas.width = 256;
+      canvas.height = height;
+      canvas.width = width;
       canvas.className = "dotted";
       document.body.appendChild(canvas);
       this.canvas = canvas;
@@ -72,10 +72,16 @@ function Grid(position = {x:0, y:0}, cn ){
     this.x = position.x;
     this.y = position.y;
 
+    this.width = width;
+    this.height = height;
+
+    this.rows = rows;
+    this.cols = cols;
+
     this.field = [];
-    for(var i=0; i<=16; i++){
+    for(var i=0; i<=cols; i++){
       this.field[i] = [];
-      for(var j=0;j<=16;j++){
+      for(var j=0;j<=rows;j++){
         this.field[i][j] = [0,0,0,0];
       }
     }
@@ -112,8 +118,8 @@ function Grid(position = {x:0, y:0}, cn ){
   
 
   this.gridClick = function(e){
-    var y = Math.floor((e.pageX - this.canvas.offsetLeft)/16),
-        x = Math.floor((e.pageY - this.canvas.offsetTop)/16);
+    var x = Math.floor((e.pageX - this.canvas.offsetLeft)/rows),
+        y = Math.floor((e.pageY - this.canvas.offsetTop)/cols);
 
         this._putPixel({x , y , color: [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255),Math.random()]});
 
@@ -213,8 +219,8 @@ function Grid(position = {x:0, y:0}, cn ){
     this.drawGrid();
     //context.fillStyle = "rgba("++")";
     //context.strokeRect(20,20,30,50);
-    for(i=0;i<=16;i++){
-      for(j=0;j<=16;j++){
+    for(i=0;i<=cols;i++){
+      for(j=0;j<=rows;j++){
         context.fillStyle = "rgba("+this.field[i][j].join(",")+")";
         context.fillRect(this.x + j*16,this.y + i*16,16,16);
       }
@@ -224,9 +230,9 @@ function Grid(position = {x:0, y:0}, cn ){
   this.generate =  function(){
     var i = 0;
     
-    for(i; i<=16; i++){
+    for(i; i<=cols; i++){
       this.field[i] = [];
-      for(j=0;j<=16;j++){
+      for(j=0;j<=rows;j++){
         this.field[i][j] = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255),Math.random()];
       }
     }
@@ -239,9 +245,9 @@ function Grid(position = {x:0, y:0}, cn ){
     this.field = [];
     var i = 0;
     var j;
-    for(i; i<=16; i++){
+    for(i; i<=cols; i++){
       this.field[i] = [];
-      for(j=0;j<=16;j++){
+      for(j=0;j<=rows;j++){
         this.field[i][j] = [0,0,0,0];
       }
     }
@@ -255,12 +261,17 @@ function Grid(position = {x:0, y:0}, cn ){
 
     context.beginPath();
     context.fillStyle = "rgba(0,0,0,1)";
-    var i = 16;
+    const w_step = width/rows;
+    const h_step = height/cols;
+    var i = rows;
     for(i;i--;){
-      context.moveTo(i*16, 0);
-      context.lineTo(i*16, 256);
-      context.moveTo(0, i*16);
-      context.lineTo(256, i*16);
+      context.moveTo(i*w_step, 0);
+      context.lineTo(i*w_step, width);
+    }
+    i = cols;
+    for(i;i--;){
+      context.moveTo(0, i*h_step);
+      context.lineTo(height, i*h_step);
     }
     context.closePath();
     context.stroke();

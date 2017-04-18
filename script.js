@@ -1,7 +1,8 @@
 
 
 window.onload = function(){
-		var T = new tetris();
+		//var T = new tetris(128, 128, 8, 8);
+		var T = new tetris(256, 256, 16, 16);
 
 		//NNgrid.generate();
 
