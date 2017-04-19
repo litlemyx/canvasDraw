@@ -79,9 +79,9 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
     this.cols = cols;
 
     this.field = [];
-    for(var i=0; i<=cols; i++){
+    for(var i=0; i<cols; i++){
       this.field[i] = [];
-      for(var j=0;j<=rows;j++){
+      for(var j=0;j<rows;j++){
         this.field[i][j] = [0,0,0,0];
       }
     }
@@ -114,6 +114,10 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
 
   this.getField = function(){
     return this.field;
+  };
+
+  this.setField = function(f){
+    this.field = f;
   };
   
 
@@ -219,10 +223,14 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
     this.drawGrid();
     //context.fillStyle = "rgba("++")";
     //context.strokeRect(20,20,30,50);
-    for(i=0;i<=cols;i++){
-      for(j=0;j<=rows;j++){
+
+    const w_step = width/rows;
+    const h_step = height/cols;
+    for(i=0;i<cols;i++){
+      for(j=0;j<rows;j++){
+        if(!this.field[i][j][0]) continue; 
         context.fillStyle = "rgba("+this.field[i][j].join(",")+")";
-        context.fillRect(this.x + j*16,this.y + i*16,16,16);
+        context.fillRect(this.x + i*w_step,this.y + j*h_step, w_step, h_step);
       }
     }
   };
@@ -230,9 +238,9 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
   this.generate =  function(){
     var i = 0;
     
-    for(i; i<=cols; i++){
+    for(i; i<cols; i++){
       this.field[i] = [];
-      for(j=0;j<=rows;j++){
+      for(j=0;j<rows;j++){
         this.field[i][j] = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255),Math.random()];
       }
     }
@@ -245,9 +253,9 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
     this.field = [];
     var i = 0;
     var j;
-    for(i; i<=cols; i++){
+    for(i; i<cols; i++){
       this.field[i] = [];
-      for(j=0;j<=rows;j++){
+      for(j=0;j<rows;j++){
         this.field[i][j] = [0,0,0,0];
       }
     }

@@ -52,6 +52,26 @@ function debounce(f, ms) {
 
 }
 
+function clone(obj) {
+      if (obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
+        return obj;
+
+      if (obj instanceof Date)
+        var temp = new obj.constructor(); //or new Date(obj);
+      else
+        var temp = obj.constructor();
+
+      for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          obj['isActiveClone'] = null;
+          temp[key] = clone(obj[key]);
+          delete obj['isActiveClone'];
+        }
+      }
+
+      return temp;
+}	
+
 function tetris(h, w, c, r){
 	var height = h,  width = w, cols = c, rows = r;
 	this.grid = new Grid(h, w, c, r);
@@ -69,7 +89,7 @@ function tetris(h, w, c, r){
 	this.blocksType = [
 		{
 			name: "line",
-			map: [[1,1,1,1]]
+			map: [[1],[1],[1],[1]]
 		},
 	];
 
@@ -84,7 +104,7 @@ function tetris(h, w, c, r){
 
 	this.reset = function () {
 		this.grid.clear();
-		this.map = Array(cols).fill(Array(rows).fill(0));
+		this.map = Array(cols).fill(Array(rows).fill([0,0,0,0]));
 		this.mapRedraw = true;
 		this.needNew = true;
 		this.speed = 3000;
@@ -98,6 +118,7 @@ function tetris(h, w, c, r){
 			exposition: {x: 0, y: 0},
 			color: [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1],
 			type: this.blocksType[0],
+			map: this.blocksType[0].map,
 			rotation: 0
 		}
 	}
@@ -118,14 +139,14 @@ function tetris(h, w, c, r){
 			this.activeBlock.position.y++;
 		}
 
-		if (37 in keysDown) { // Player holding left
-			this.activeBlock.position.x && this.activeBlock.position.x-- ;
-			delete keysDown[37];
-		}
-		if (39 in keysDown) { // Player holding right
-			(this.activeBlock.position.x < cols) && this.activeBlock.position.x++;	
-			delete keysDown[39];
-		}
+		// if (37 in keysDown) { // Player holding left
+		// 	this.activeBlock.position.x && this.activeBlock.position.x-- ;
+		// 	delete keysDown[37];
+		// }
+		// if (39 in keysDown) { // Player holding right
+		// 	(this.activeBlock.position.x < cols) && this.activeBlock.position.x++;	
+		// 	delete keysDown[39];
+		// }
 		
 			
 		// hero.running = false;
@@ -152,18 +173,37 @@ function tetris(h, w, c, r){
 	// Draw everything
 	this.render = function () {
 		
-		if(this.mapRedraw){
-			this.grid.remap(this.map);
-			this.mapRedraw = false;
-		}
+		// if(this.mapRedraw){
+		// 	this.grid.remap(this.map);
+		// 	this.mapRedraw = false;
+		// }
 
-		this.grid.clearFigure(this.activeBlock.exposition, this.activeBlock.type);
+		// this.grid.clearFigure(this.activeBlock.exposition, this.activeBlock.type);
 
-		this.grid.putFigure(this.activeBlock);
+		// this.grid.putFigure(this.activeBlock);
+
+		this.grid.setField(addition(this.map, this.activeBlock))
 
 		this.grid.fireEvent("renderFinish");
 
 		
+	};
+
+	var addition = function(map , block){
+		let n_map = clone(map);
+		let p,pp;
+	    let i = 0,j = 0;
+	    for(p of block.map){
+	      j=0;
+	      for(pp of  p){
+	       	n_map[i+block.position.x][j+block.position.y] = block.color.slice(0,3).concat(block.map[i][j]);
+	        j++;
+	      }
+	      i++;
+	    }
+
+	    return n_map;
+
 	};
 
 	this.keysHandler = function(){
@@ -187,7 +227,7 @@ function tetris(h, w, c, r){
 			delete keysDown[37];
 		}
 		if (39 in keysDown) { // Player holding right
-			if(this.activeBlock.position.x < 12){
+			if(this.activeBlock.position.x < this.activeBlock.map[0].length){
 				let {x, y} = this.activeBlock.position;
 				this.activeBlock.exposition = {x, y};
 				this.activeBlock.position.x++; 
