@@ -224,8 +224,8 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
     //context.fillStyle = "rgba("++")";
     //context.strokeRect(20,20,30,50);
 
-    const w_step = width/rows;
-    const h_step = height/cols;
+    const w_step = width/cols;
+    const h_step = height/rows;
     for(i=0;i<cols;i++){
       for(j=0;j<rows;j++){
         if(!this.field[i][j][0]) continue; 
@@ -269,20 +269,22 @@ function Grid(height = 256, width = 256, rows = 16, cols = 16, cn, position = {x
 
     context.beginPath();
     context.fillStyle = "rgba(0,0,0,1)";
-    const w_step = width/rows;
-    const h_step = height/cols;
-    var i = rows;
-    for(i;i--;){
-      context.moveTo(i*w_step, 0);
-      context.lineTo(i*w_step, width);
-    }
-    i = cols;
+    const w_step = width/cols;
+    const h_step = height/rows;
+    var i = cols;
     for(i;i--;){
       context.moveTo(0, i*h_step);
-      context.lineTo(height, i*h_step);
+      context.lineTo(width, i*h_step);
     }
+    i = rows;
+    for(i;i--;){
+      context.moveTo(i*w_step, 0);
+      context.lineTo(i*w_step, height);
+    }
+
     context.closePath();
-    context.stroke();
+    context.stroke(); 
+    
   };
 
 

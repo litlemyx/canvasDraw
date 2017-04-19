@@ -107,9 +107,14 @@ function tetris(h, w, c, r){
 		this.map = Array(cols).fill(Array(rows).fill([0,0,0,0]));
 		this.mapRedraw = true;
 		this.needNew = true;
-		this.speed = 3000;
+		this.speed = 1000;
 		this.isPause = false;
 	};
+
+	this.setMap = function(map){
+		this.map = map;
+	};
+
 
 	this.generateBlock = function(){
 		this.activeBlock = 
@@ -130,13 +135,20 @@ function tetris(h, w, c, r){
 		console.log("update tick");
 		//this.activeBlock.color = [randomInteger(0,255),randomInteger(0,255),randomInteger(0,255), 1];
 		if(this.needNew){
-					this.generateBlock();
-					this.needNew=false;
+			this.generateBlock();
+			this.needNew=false;
 		}
 		else{
 			let {x, y} = this.activeBlock.position;
 			this.activeBlock.exposition = {x, y};
-			this.activeBlock.position.y++;
+
+			if(y+1 >= this.grid.rows){
+				this.needNew = true;
+				this.setMap(addition(this.map, this.activeBlock));
+			}
+			else{
+				this.activeBlock.position.y++;
+			}
 		}
 
 		// if (37 in keysDown) { // Player holding left
@@ -185,8 +197,6 @@ function tetris(h, w, c, r){
 		this.grid.setField(addition(this.map, this.activeBlock))
 
 		this.grid.fireEvent("renderFinish");
-
-		
 	};
 
 	var addition = function(map , block){
@@ -227,7 +237,7 @@ function tetris(h, w, c, r){
 			delete keysDown[37];
 		}
 		if (39 in keysDown) { // Player holding right
-			if(this.activeBlock.position.x < this.activeBlock.map[0].length){
+			if(this.activeBlock.position.x + this.activeBlock.map.length < this.grid.cols){
 				let {x, y} = this.activeBlock.position;
 				this.activeBlock.exposition = {x, y};
 				this.activeBlock.position.x++; 
@@ -240,7 +250,7 @@ function tetris(h, w, c, r){
 	// The main game loop
 	this.main = (function(self){
 
-			var update = debounce(self.update.bind(self), 3000);
+			var update = debounce(self.update.bind(self), 1000);
 
 			return function (then) {
 				var fps = 60;
@@ -264,10 +274,6 @@ function tetris(h, w, c, r){
 				this.render();
 
 				then = now;
-
-				// Request to do this again ASAP
-				var t = 100/6;
-				//setTimeout(main, t-delta);
 			}
 		
 	})(this);
